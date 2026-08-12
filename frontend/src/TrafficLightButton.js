@@ -1,5 +1,6 @@
-import React, { useMemo } from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { Animated, Easing, Platform, Pressable, StyleSheet, Text } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import Svg, { Defs, ClipPath, Circle, G } from 'react-native-svg';
 import { generateHexGrid } from './hex';
 import AnimatedLed from './AnimatedLed';
@@ -11,16 +12,42 @@ import { CONFIG } from './config';
 // small hexagonal LEDs, clipped to a perfect circle. The gaps between LEDs are
 // pure black; each hexagon carries the live traffic-light colour and flips
 // digitally (one at a time) during a transition. A thin, constant neutral
-// border frames the circle.
+// border frames the circle. While idle, a slow shimmer wave drifts across the
+// green LEDs; tapping fires a subtle haptic pulse on real devices.
 // -----------------------------------------------------------------------------
 export default function TrafficLightButton({ size }) {
   const { hexes, center, CR } = useMemo(() => generateHexGrid(size), [size]);
   const { progress, from, to, delays, phase, start } = useTrafficSequence(hexes.length);
   const interactive = phase === 'IDLE_GREEN';
 
+  // Idle shimmer: loop 0 -> 1 while idle, stop (and reset) during sequences.
+  const shimmer = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (!interactive) return;
+    shimmer.setValue(0);
+    const loop = Animated.loop(
+      Animated.timing(shimmer, {
+        toValue: 1,
+        duration: CONFIG.SHIMMER_DURATION,
+        easing: Easing.linear,
+        useNativeDriver: false,
+      })
+    );
+    loop.start();
+    return () => loop.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [interactive]);
+
+  const handlePress = () => {
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    }
+    start();
+  };
+
   return (
     <Pressable
-      onPress={start}
+      onPress={handlePress}
       disabled={!interactive}
       testID="traffic-light-button"
       accessibilityRole="button"
@@ -59,6 +86,8 @@ export default function TrafficLightButton({ size }) {
               from={from}
               to={to}
               switchAt={delays[h.id] ?? 0}
+              shimmer={interactive ? shimmer : null}
+              wavePhase={h.wavePhase}
             />
           ))}
         </G>

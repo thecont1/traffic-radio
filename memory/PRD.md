@@ -54,7 +54,21 @@ MIN/MAX_OPACITY, BEZEL='#333333', BEZEL_WIDTH=1.5.
 - Accessibility: role=button, label "Traffic light button", state text
   Ready/Preparing/Active/Completing (off-screen live region + accessibilityValue).
 
+## Implemented (2026-06, batch 2 — all tested via testing agent iteration_3: 100% pass)
+- Idle shimmer: slow brightness wave (fillOpacity) drifting left→right across the
+  green LEDs with per-LED jitter; runs ONLY while IDLE_GREEN, freezes during
+  sequences, resumes after. Knobs: SHIMMER_DURATION/DIM/BOOST/WIDTH in config.js.
+- Speed presets: SPEED_PRESETS {CALM:1500, NORMAL:500, RAPID:200} +
+  ACTIVE_SPEED_PRESET ('NORMAL' active) drive TRANSITION_DURATION.
+- Tap haptics: expo-haptics Medium impact on activation (native only; no-op web).
+- Digital flip band narrowed to 0.0001 → zero blended colours mid-transition.
+- EAS build prep: eas.json (development/preview/production profiles), app.json
+  identifiers com.emergent.trafficlight (iOS+Android), frontend/BUILD.md with
+  exact `eas build` steps (user runs with their free Expo account).
+- Fixed dev-console error: `collapsable` prop stripped before reaching SVG DOM
+  (forwardRef wrapper around Polygon). Console now clean.
+
 ## Backlog / next
-- P2: Native device build (iOS/Android via Expo Go / EAS) — currently web preview.
-- P2: Optional haptics on tap (native).
-- P2: Suppress dev-only react-native-web `collapsable` console warning.
+- P2: User runs `eas build --profile preview --platform android` per BUILD.md to
+  get an installable APK; haptics verifiable only on real device.
+- P2: Native device/simulator validation (all testing so far is Expo Web).

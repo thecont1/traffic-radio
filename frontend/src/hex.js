@@ -45,10 +45,15 @@ export function generateHexGrid(size, density = CONFIG.LED_DENSITY, gap = CONFIG
       const opacity =
         CONFIG.MIN_OPACITY + Math.random() * (CONFIG.MAX_OPACITY - CONFIG.MIN_OPACITY);
 
+      // Wave phase for the idle shimmer: mostly position-driven (left -> right)
+      // with a little per-LED jitter for a gentle twinkle.
+      const wavePhase = (cx / size + (Math.random() - 0.5) * 0.16 + 1) % 1;
+
       hexes.push({
         id: idx++,
         points: hexPoints(cx, cy, drawR),
         opacity: Number(opacity.toFixed(3)),
+        wavePhase: Number(wavePhase.toFixed(3)),
       });
     }
   }
