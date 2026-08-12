@@ -95,6 +95,20 @@ MIN/MAX_OPACITY, BEZEL='#333333', BEZEL_WIDTH=1.5.
 - Security audit (2026-06): PASS — no critical/high/medium findings; P3 notes
   only (console log in performAction, cosmetic Math.random, run yarn audit in CI).
 
+## Implemented (2026-06, batch 4 — testing agent iteration_5: 100% pass)
+- Location under the light: device GPS (navigator.geolocation on web /
+  expo-location native, permission plugin in app.json) -> POST /api/location ->
+  backend proxies Nominatim reverse geocode (zoom 16, neighbourhood-level, e.g.
+  "NHCS Layout, Bengaluru") with ~110m-bucket in-memory cache (6h TTL, pruned
+  above 2048 entries). Refreshes every 5 min (CONFIG.LOCATION_REFRESH_MS).
+  UI: LocationDisplay.js under the button (testIDs location-display /
+  location-attribution, "© OpenStreetMap" per usage policy). Denied permission
+  -> "Location unavailable".
+- Console log cleanup: performAction.js is now a silent no-op (zero debug output).
+- Cancel confirmation pulse: white AnimatedCircle flash (0 -> 0.35 -> 0,
+  ~420ms, PULSE_* config) fires on double-tap cancel.
+- Post-test fixes: attribution contrast raised (#5a6673 @10px), cache pruning.
+
 ## Backlog / next
 - P2: User runs `eas build --profile preview --platform android` per BUILD.md to
   get an installable APK; haptics verifiable only on real device.

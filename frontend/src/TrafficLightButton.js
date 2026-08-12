@@ -9,6 +9,12 @@ import { CONFIG } from './config';
 
 const C = CONFIG.COLORS;
 
+const AnimatedCircle = Animated.createAnimatedComponent(
+  React.forwardRef(function CleanCircle({ collapsable, ...rest }, ref) {
+    return <Circle ref={ref} {...rest} />;
+  })
+);
+
 // Colour-blind shape cue: dim factor for a given hex when showing `color`.
 // green/off = all lit, amber = checker pattern, red = large X across the face.
 function cueFactor(hex, color) {
@@ -55,6 +61,26 @@ export default function TrafficLightButton({ size }) {
     }
   };
 
+  // Cancel confirmation: one quick bright pulse across the whole face.
+  const pulse = useRef(new Animated.Value(0)).current;
+  const firePulse = () => {
+    pulse.setValue(0);
+    Animated.sequence([
+      Animated.timing(pulse, {
+        toValue: 1,
+        duration: CONFIG.PULSE_IN,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: false,
+      }),
+      Animated.timing(pulse, {
+        toValue: 0,
+        duration: CONFIG.PULSE_OUT,
+        easing: Easing.in(Easing.quad),
+        useNativeDriver: false,
+      }),
+    ]).start();
+  };
+
   // Single tap activates from idle; a quick double-tap during red cancels early.
   const lastTapRef = useRef(0);
   const handlePress = () => {
@@ -63,6 +89,7 @@ export default function TrafficLightButton({ size }) {
       if (now - lastTapRef.current < CONFIG.DOUBLE_TAP_WINDOW) {
         lastTapRef.current = 0;
         buzz();
+        firePulse();
         cancel();
       } else {
         lastTapRef.current = now;
@@ -121,6 +148,15 @@ export default function TrafficLightButton({ size }) {
             />
           ))}
         </G>
+
+        {/* Cancel confirmation flash (invisible at rest) */}
+        <AnimatedCircle
+          cx={center}
+          cy={center}
+          r={CR}
+          fill="#ffffff"
+          opacity={pulse.interpolate({ inputRange: [0, 1], outputRange: [0, CONFIG.PULSE_OPACITY] })}
+        />
 
         {/* Thin, constant neutral border */}
         <Circle

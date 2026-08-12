@@ -42,6 +42,14 @@ export const CONFIG = {
   // --- Interaction -------------------------------------------------------------
   DOUBLE_TAP_WINDOW: 300, // ms between taps to count as a double-tap (red cancel)
 
+  // --- Cancel confirmation pulse ---------------------------------------------------
+  PULSE_OPACITY: 0.35, // peak brightness of the white flash
+  PULSE_IN: 120, // ms to reach peak
+  PULSE_OUT: 300, // ms to fade out
+
+  // --- Location -----------------------------------------------------------------
+  LOCATION_REFRESH_MS: 5 * 60 * 1000, // re-check approximate location every 5 min
+
   // --- Color-blind mode ----------------------------------------------------------
   // When true, each state gets a shape cue readable without colour:
   // green = all hexes lit, amber = checker pattern, red = large X of dimmed hexes.
