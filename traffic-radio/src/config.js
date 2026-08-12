@@ -20,10 +20,10 @@ export const CONFIG = {
   ACTIVE_DURATION: 10000, // red hold (10s)
   COMPLETION_DURATION: 1000, // second yellow hold (1s)
 
-  // --- LED randomised transition ---------------------------------------------
-  // Each LED flips instantly (digital) at a random point in the 0..1 window,
-  // so hexagons switch one-by-one across the whole transition.
-  FLIP_SPREAD: 1.0, // fraction of the window over which flips are scattered
+  // --- LED wave transition ----------------------------------------------------
+  // Each LED flips instantly (digital) at a spatially-driven point in the 0..1
+  // window, so the new colour fills the circle as a left -> right wave front.
+  WAVE_JITTER: 0.04, // per-LED timing jitter so the front isn't perfectly mechanical
 
   // --- Honeycomb / LED rendering ---------------------------------------------
   LED_DENSITY: 15, // approx number of hexagons across the diameter

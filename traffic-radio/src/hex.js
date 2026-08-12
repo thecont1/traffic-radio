@@ -49,6 +49,14 @@ export function generateHexGrid(size, density = CONFIG.LED_DENSITY, gap = CONFIG
       // with a little per-LED jitter for a gentle twinkle.
       const wavePhase = (cx / size + (Math.random() - 0.5) * 0.16 + 1) % 1;
 
+      // Spatial switchAt for colour transitions: a clean left -> right sweep so
+      // the new colour fills the circle as a wave front. A small jitter keeps
+      // the front from looking perfectly mechanical.
+      const waveDelay = Math.min(
+        Math.max(cx / size + (Math.random() - 0.5) * CONFIG.WAVE_JITTER, 0),
+        1
+      );
+
       // Colour-blind cue geometry: checker parity + membership in a large X.
       const parity = (((r + c) % 2) + 2) % 2;
       const onX = Math.min(Math.abs(dx - dy), Math.abs(dx + dy)) / Math.SQRT2 < R * 1.15;
@@ -58,6 +66,7 @@ export function generateHexGrid(size, density = CONFIG.LED_DENSITY, gap = CONFIG
         points: hexPoints(cx, cy, drawR),
         opacity: Number(opacity.toFixed(3)),
         wavePhase: Number(wavePhase.toFixed(3)),
+        waveDelay: Number(waveDelay.toFixed(3)),
         parity,
         onX,
       });

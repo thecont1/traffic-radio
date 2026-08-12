@@ -33,7 +33,8 @@ function cueFactor(hex, color) {
 // -----------------------------------------------------------------------------
 export default function TrafficLightButton({ size }) {
   const { hexes, center, CR } = useMemo(() => generateHexGrid(size), [size]);
-  const { progress, from, to, delays, phase, start, cancel } = useTrafficSequence(hexes.length);
+  const waveDelays = useMemo(() => hexes.map((h) => h.waveDelay), [hexes]);
+  const { progress, from, to, delays, phase, start, cancel } = useTrafficSequence(waveDelays);
   const interactive = phase === 'IDLE_GREEN';
   const cancellable = phase === 'RED_ACTIVE';
 

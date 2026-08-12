@@ -25,7 +25,8 @@ const C = CONFIG.COLORS;
 //   * Every transition drives `progress` fully to 1, so LEDs never get stuck
 //     between colours.
 // -----------------------------------------------------------------------------
-export function useTrafficSequence(ledCount) {
+export function useTrafficSequence(waveDelays) {
+  const ledCount = waveDelays.length;
   const progress = useRef(new Animated.Value(1)).current;
   const zeros = useMemo(() => new Array(ledCount).fill(0), [ledCount]);
 
@@ -75,11 +76,9 @@ export function useTrafficSequence(ledCount) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [trans.seq]);
 
-  const makeDelays = useCallback(() => {
-    const arr = new Array(ledCount);
-    for (let i = 0; i < ledCount; i++) arr[i] = Math.random() * CONFIG.FLIP_SPREAD;
-    return arr;
-  }, [ledCount]);
+  // Per-LED switchAt values come from each hex's spatial position (left -> right),
+  // so the new colour fills the circle as a wave front instead of random scatter.
+  const makeDelays = useCallback(() => waveDelays.slice(), [waveDelays]);
 
   const runTransition = useCallback(
     (target, onDone) => {
