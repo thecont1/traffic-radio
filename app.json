@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "2f260294-eb68-49e8-9391-7c692743168d"
+      }
+    },
+    "android": {
+      "package": "com.thecontrarian.frontend"
+    }
+  }
+}

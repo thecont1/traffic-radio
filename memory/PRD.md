@@ -1,4 +1,4 @@
-# Traffic Light Button — PRD
+# Traffic Radio Button — PRD
 
 ## Problem statement
 A minimal native mobile app (Expo / React Native) whose ONLY visible control is a
