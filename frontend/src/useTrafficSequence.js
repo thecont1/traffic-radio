@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing } from 'react-native';
 import { CONFIG } from './config';
 import { performAction } from './performAction';
+import { playTickBurst } from './sound';
 
 const C = CONFIG.COLORS;
 
@@ -9,16 +10,18 @@ const C = CONFIG.COLORS;
 // Traffic-light state machine.
 //
 // States:
+//   BOOT (power-on flicker, ~0.5s)     -> IDLE_GREEN
 //   IDLE_GREEN
-//   TRANSITIONING_TO_YELLOW  -> YELLOW_PREPARATION
-//   TRANSITIONING_TO_RED     -> RED_ACTIVE            (performAction fires here)
+//   TRANSITIONING_TO_YELLOW            -> YELLOW_PREPARATION
+//   TRANSITIONING_TO_RED               -> RED_ACTIVE   (performAction fires here)
 //   TRANSITIONING_TO_YELLOW_COMPLETION -> YELLOW_COMPLETION
-//   TRANSITIONING_TO_GREEN   -> IDLE_GREEN
+//   TRANSITIONING_TO_GREEN             -> IDLE_GREEN
 //
 // Guarantees:
 //   * Only one activation sequence runs at a time (runningRef).
-//   * Taps are ignored unless we are in IDLE_GREEN.
-//   * Timers are tracked and cleared on unmount; they cannot overlap.
+//   * Taps are ignored unless we are in IDLE_GREEN (double-tap in RED_ACTIVE
+//     cancels early and flips straight back to green).
+//   * Timers are tracked and cleared on unmount/cancel; they cannot overlap.
 //   * Every transition drives `progress` fully to 1, so LEDs never get stuck
 //     between colours.
 // -----------------------------------------------------------------------------
@@ -27,11 +30,16 @@ export function useTrafficSequence(ledCount) {
   const zeros = useMemo(() => new Array(ledCount).fill(0), [ledCount]);
 
   // A single transition descriptor. Bumping `seq` triggers the animation.
-  const [trans, setTrans] = useState({ from: C.green, to: C.green, delays: zeros, seq: 0 });
-  const [phase, setPhase] = useState('IDLE_GREEN');
+  const [trans, setTrans] = useState({
+    from: CONFIG.OFF_COLOR,
+    to: CONFIG.OFF_COLOR,
+    delays: zeros,
+    seq: 0,
+  });
+  const [phase, setPhase] = useState('BOOT');
 
   const runningRef = useRef(false);
-  const currentRef = useRef(C.green); // last settled colour
+  const currentRef = useRef(CONFIG.OFF_COLOR); // last settled colour
   const onDoneRef = useRef(null);
   const timers = useRef([]);
   const animRef = useRef(null);
@@ -48,9 +56,10 @@ export function useTrafficSequence(ledCount) {
     []
   );
 
-  // Run the ~0.8s timing curve whenever a new transition is queued.
+  // Run the timing curve whenever a new transition is queued.
   useEffect(() => {
-    if (trans.seq === 0) return; // initial idle state, nothing to animate
+    if (trans.seq === 0) return; // initial unpowered state, nothing to animate
+    playTickBurst();
     progress.setValue(0);
     const anim = Animated.timing(progress, {
       toValue: 1,
@@ -82,6 +91,16 @@ export function useTrafficSequence(ledCount) {
     },
     [makeDelays]
   );
+
+  // Boot flicker: unpowered -> green, hexes popping on one at a time (~0.5s).
+  useEffect(() => {
+    runningRef.current = true;
+    runTransition(C.green, () => {
+      setPhase('IDLE_GREEN');
+      runningRef.current = false;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const start = useCallback(() => {
     if (runningRef.current || phase !== 'IDLE_GREEN') return; // ignore taps mid-sequence
@@ -119,16 +138,29 @@ export function useTrafficSequence(ledCount) {
     });
   }, [phase, runTransition]);
 
-  return { progress, from: trans.from, to: trans.to, delays: trans.delays, phase, start };
+  // Early cancel: only valid during RED_ACTIVE. Clears the pending red timer
+  // and flips straight back to interactive green (skips the amber completion).
+  const cancel = useCallback(() => {
+    if (phase !== 'RED_ACTIVE') return;
+    clearTimers();
+    setPhase('TRANSITIONING_TO_GREEN');
+    runTransition(C.green, () => {
+      setPhase('IDLE_GREEN');
+      runningRef.current = false;
+    });
+  }, [phase, runTransition]);
+
+  return { progress, from: trans.from, to: trans.to, delays: trans.delays, phase, start, cancel };
 }
 
 // Accessibility state text exposed to assistive technologies.
 export const PHASE_A11Y = {
+  BOOT: 'Starting',
   IDLE_GREEN: 'Ready',
   TRANSITIONING_TO_YELLOW: 'Preparing',
   YELLOW_PREPARATION: 'Preparing',
   TRANSITIONING_TO_RED: 'Preparing',
-  RED_ACTIVE: 'Active',
+  RED_ACTIVE: 'Active, double tap to cancel',
   TRANSITIONING_TO_YELLOW_COMPLETION: 'Completing',
   YELLOW_COMPLETION: 'Completing',
   TRANSITIONING_TO_GREEN: 'Completing',

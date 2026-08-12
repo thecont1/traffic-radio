@@ -18,10 +18,10 @@ const AnimatedPolygon = Animated.createAnimatedComponent(
 // stays on the old colour until progress crosses that point, then flips
 // (near-instantly) to the target colour — a "digital" switch.
 //
-// Shimmer: while idle, a shared `shimmer` Animated.Value (0 -> 1 loop) drives a
-// slow brightness wave. Each LED samples a triangular crest centred on its own
-// `wavePhase` (with wrap-around), so the wave drifts smoothly across the face.
-// When `shimmer` is null (any active sequence), the LED uses its static opacity.
+// Opacity: while idle a shared `shimmer` value drives a slow brightness wave.
+// Otherwise the LED shows `opacity * cue`, where the cue factor encodes the
+// optional colour-blind pattern (checker for amber, X for red). The cue flips
+// digitally at the same `switchAt` moment as the colour.
 // -----------------------------------------------------------------------------
 function buildShimmerOpacity(shimmer, base, phase) {
   const N = 12;
@@ -38,7 +38,7 @@ function buildShimmerOpacity(shimmer, base, phase) {
   return shimmer.interpolate({ inputRange, outputRange });
 }
 
-function AnimatedLed({ points, opacity, progress, from, to, switchAt, shimmer, wavePhase }) {
+function AnimatedLed({ points, opacity, progress, from, to, switchAt, shimmer, wavePhase, cueFrom, cueTo }) {
   const s = Math.min(Math.max(switchAt, 0), 0.9998);
   const fill = progress.interpolate({
     inputRange: [s, s + 0.0001], // tiny band => hard, digital flip
@@ -46,10 +46,18 @@ function AnimatedLed({ points, opacity, progress, from, to, switchAt, shimmer, w
     extrapolate: 'clamp',
   });
 
-  const fillOpacity = useMemo(
-    () => (shimmer ? buildShimmerOpacity(shimmer, opacity, wavePhase) : opacity),
-    [shimmer, opacity, wavePhase]
-  );
+  const fromO = opacity * cueFrom;
+  const toO = opacity * cueTo;
+  const fillOpacity = useMemo(() => {
+    if (shimmer) return buildShimmerOpacity(shimmer, opacity, wavePhase);
+    if (fromO === toO) return toO;
+    return progress.interpolate({
+      inputRange: [s, s + 0.0001],
+      outputRange: [fromO, toO],
+      extrapolate: 'clamp',
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shimmer, opacity, wavePhase, fromO, toO, s]);
 
   return <AnimatedPolygon points={points} fill={fill} fillOpacity={fillOpacity} />;
 }

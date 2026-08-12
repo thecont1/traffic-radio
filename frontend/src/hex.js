@@ -49,11 +49,17 @@ export function generateHexGrid(size, density = CONFIG.LED_DENSITY, gap = CONFIG
       // with a little per-LED jitter for a gentle twinkle.
       const wavePhase = (cx / size + (Math.random() - 0.5) * 0.16 + 1) % 1;
 
+      // Colour-blind cue geometry: checker parity + membership in a large X.
+      const parity = (((r + c) % 2) + 2) % 2;
+      const onX = Math.min(Math.abs(dx - dy), Math.abs(dx + dy)) / Math.SQRT2 < R * 1.15;
+
       hexes.push({
         id: idx++,
         points: hexPoints(cx, cy, drawR),
         opacity: Number(opacity.toFixed(3)),
         wavePhase: Number(wavePhase.toFixed(3)),
+        parity,
+        onX,
       });
     }
   }

@@ -39,6 +39,25 @@ export const CONFIG = {
   SHIMMER_BOOST: 0.3, // extra brightness at the wave crest
   SHIMMER_WIDTH: 0.2, // crest width as a fraction of the sweep
 
+  // --- Interaction -------------------------------------------------------------
+  DOUBLE_TAP_WINDOW: 300, // ms between taps to count as a double-tap (red cancel)
+
+  // --- Color-blind mode ----------------------------------------------------------
+  // When true, each state gets a shape cue readable without colour:
+  // green = all hexes lit, amber = checker pattern, red = large X of dimmed hexes.
+  COLOR_BLIND_MODE: false,
+  CUE_DIM: 0.35, // brightness of the "dimmed" hexes forming the pattern
+
+  // --- Sound ticks ---------------------------------------------------------------
+  // A faint relay-crackle of ticks scattered across each colour transition.
+  // Web Audio (web/preview only; native relies on haptics).
+  SOUND_TICKS: true,
+  TICK_COUNT: 20,
+  TICK_VOLUME: 0.04,
+
+  // --- Boot flicker ----------------------------------------------------------------
+  OFF_COLOR: 'rgb(9,13,11)', // unpowered LED colour before boot completes
+
   // --- Realistic traffic-light colors (rgb for reliable interpolation) -------
   COLORS: {
     green: 'rgb(39,214,79)',

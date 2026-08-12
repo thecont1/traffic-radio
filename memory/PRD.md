@@ -68,6 +68,20 @@ MIN/MAX_OPACITY, BEZEL='#333333', BEZEL_WIDTH=1.5.
 - Fixed dev-console error: `collapsable` prop stripped before reaching SVG DOM
   (forwardRef wrapper around Polygon). Console now clean.
 
+## Implemented (2026-06, batch 3 — testing agent iteration_4: 100% pass)
+- Boot flicker: LEDs start unpowered (OFF_COLOR) and pop on one-by-one to green
+  over ~0.5s on app open (BOOT phase reuses the digital-flip machinery).
+- Double-tap cancel: two taps <300ms apart during RED_ACTIVE clear the red timer
+  and flip straight back to green (skips amber completion); single taps during
+  red do nothing; performAction count unaffected. A11y text during red:
+  "Active, double tap to cancel".
+- Sound ticks: ~20 faint Web Audio square-wave clicks scattered across each
+  transition (src/sound.js). Web/preview only — silent no-op on native (haptics
+  cover device feedback). Knobs: SOUND_TICKS/TICK_COUNT/TICK_VOLUME.
+- Color-blind mode: CONFIG.COLOR_BLIND_MODE (default OFF). ON = green all lit,
+  amber checker pattern, red large X of dimmed hexes (CUE_DIM=0.35); cue flips
+  digitally with each LED's colour. Visually verified ON (checker + X render).
+
 ## Backlog / next
 - P2: User runs `eas build --profile preview --platform android` per BUILD.md to
   get an installable APK; haptics verifiable only on real device.

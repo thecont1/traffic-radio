@@ -7,18 +7,29 @@ import AnimatedLed from './AnimatedLed';
 import { useTrafficSequence, PHASE_A11Y } from './useTrafficSequence';
 import { CONFIG } from './config';
 
+const C = CONFIG.COLORS;
+
+// Colour-blind shape cue: dim factor for a given hex when showing `color`.
+// green/off = all lit, amber = checker pattern, red = large X across the face.
+function cueFactor(hex, color) {
+  if (!CONFIG.COLOR_BLIND_MODE) return 1;
+  if (color === C.yellow) return hex.parity === 1 ? CONFIG.CUE_DIM : 1;
+  if (color === C.red) return hex.onX ? CONFIG.CUE_DIM : 1;
+  return 1;
+}
+
 // -----------------------------------------------------------------------------
 // The one and only visible control: a giant circular button built from many
-// small hexagonal LEDs, clipped to a perfect circle. The gaps between LEDs are
-// pure black; each hexagon carries the live traffic-light colour and flips
-// digitally (one at a time) during a transition. A thin, constant neutral
-// border frames the circle. While idle, a slow shimmer wave drifts across the
-// green LEDs; tapping fires a subtle haptic pulse on real devices.
+// small hexagonal LEDs, clipped to a perfect circle. Boots with a power-on
+// flicker, shimmers while idle, flips digitally between colours, ticks softly
+// on web, pulses haptically on device, and supports a double-tap cancel while
+// red is active.
 // -----------------------------------------------------------------------------
 export default function TrafficLightButton({ size }) {
   const { hexes, center, CR } = useMemo(() => generateHexGrid(size), [size]);
-  const { progress, from, to, delays, phase, start } = useTrafficSequence(hexes.length);
+  const { progress, from, to, delays, phase, start, cancel } = useTrafficSequence(hexes.length);
   const interactive = phase === 'IDLE_GREEN';
+  const cancellable = phase === 'RED_ACTIVE';
 
   // Idle shimmer: loop 0 -> 1 while idle, stop (and reset) during sequences.
   const shimmer = useRef(new Animated.Value(0)).current;
@@ -38,21 +49,38 @@ export default function TrafficLightButton({ size }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [interactive]);
 
-  const handlePress = () => {
+  const buzz = () => {
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
     }
+  };
+
+  // Single tap activates from idle; a quick double-tap during red cancels early.
+  const lastTapRef = useRef(0);
+  const handlePress = () => {
+    if (cancellable) {
+      const now = Date.now();
+      if (now - lastTapRef.current < CONFIG.DOUBLE_TAP_WINDOW) {
+        lastTapRef.current = 0;
+        buzz();
+        cancel();
+      } else {
+        lastTapRef.current = now;
+      }
+      return;
+    }
+    buzz();
     start();
   };
 
   return (
     <Pressable
       onPress={handlePress}
-      disabled={!interactive}
+      disabled={!interactive && !cancellable}
       testID="traffic-light-button"
       accessibilityRole="button"
       accessibilityLabel="Traffic light button"
-      accessibilityState={{ disabled: !interactive }}
+      accessibilityState={{ disabled: !interactive && !cancellable }}
       accessibilityValue={{ text: PHASE_A11Y[phase] }}
       style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}
     >
@@ -88,6 +116,8 @@ export default function TrafficLightButton({ size }) {
               switchAt={delays[h.id] ?? 0}
               shimmer={interactive ? shimmer : null}
               wavePhase={h.wavePhase}
+              cueFrom={cueFactor(h, from)}
+              cueTo={cueFactor(h, to)}
             />
           ))}
         </G>
