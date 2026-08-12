@@ -27,7 +27,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Install EAS CLI
-        run: npm install --global eas-cli
+        run: yarn global add eas-cli
 
       - name: Build standalone Android APK
         run: eas build --platform android --profile production --non-interactive
