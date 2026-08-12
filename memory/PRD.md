@@ -82,6 +82,19 @@ MIN/MAX_OPACITY, BEZEL='#333333', BEZEL_WIDTH=1.5.
   amber checker pattern, red large X of dimmed hexes (CUE_DIM=0.35); cue flips
   digitally with each LED's colour. Visually verified ON (checker + X render).
 
+## Deployment readiness (2026-06)
+- Production deploy had failed at pull_source: pipeline requires backend/.env but
+  the app was frontend-only. Fixed by adding /app/backend (minimal FastAPI stub:
+  GET /api/ and /api/health, .env with MONGO_URL/DB_NAME, pinned requirements.txt)
+  and /app/frontend/.env (EXPO_PUBLIC_BACKEND_URL + Expo tunnel vars).
+- Backend RUNNING; /api/health healthy locally and via preview URL; web preview
+  unaffected (221 LEDs, Ready).
+- Deliberate: package.json start stays `expo start --web --port 3000` (web app);
+  tunnel mode would break the web preview/deployed page. Supervisor conf is
+  platform-managed READONLY.
+- Security audit (2026-06): PASS — no critical/high/medium findings; P3 notes
+  only (console log in performAction, cosmetic Math.random, run yarn audit in CI).
+
 ## Backlog / next
 - P2: User runs `eas build --profile preview --platform android` per BUILD.md to
   get an installable APK; haptics verifiable only on real device.
