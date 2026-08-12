@@ -9,7 +9,10 @@
     "backgroundColor": "#070a0f",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.emergent.trafficradio"
+      "bundleIdentifier": "com.emergent.trafficradio",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.emergent.trafficradio",
