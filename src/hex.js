@@ -29,17 +29,18 @@ export function generateHexGrid(size, density = CONFIG.LED_DENSITY, gap = CONFIG
 
   // Precompute wave direction vectors from angle (degrees).
   // 0° = left→right, 90° = top→bottom, 45° = diagonal, etc.
-  // Projection of (cx, cy) onto the direction vector, normalised to 0..1
-  // across the full extent of the grid.
+  // Each hex's position is projected onto the direction vector relative to
+  // the circle's centre, then normalised to 0..1 across the circle's diameter
+  // in that direction (which is always 2*CR for a circle).
   const wRad = (CONFIG.WAVE_ANGLE * Math.PI) / 180;
   const wDx = Math.cos(wRad);
   const wDy = Math.sin(wRad);
-  const wNorm = size * (Math.abs(wDx) + Math.abs(wDy)); // full projection extent
+  const wSpan = 2 * CR; // projection extent of the circle in any direction
 
   const sRad = (CONFIG.SHIMMER_ANGLE * Math.PI) / 180;
   const sDx = Math.cos(sRad);
   const sDy = Math.sin(sRad);
-  const sNorm = size * (Math.abs(sDx) + Math.abs(sDy));
+  const sSpan = 2 * CR;
 
   const rows = Math.ceil(size / vStep) + 2;
   const cols = Math.ceil(size / width) + 2;
@@ -61,15 +62,15 @@ export function generateHexGrid(size, density = CONFIG.LED_DENSITY, gap = CONFIG
 
       // Wave phase for the idle shimmer: position-driven sweep along the
       // configured SHIMMER_ANGLE, with a little per-LED jitter for a twinkle.
-      const sProj = (cx * sDx + cy * sDy) / sNorm;
-      const wavePhase = (sProj + (Math.random() - 0.5) * 0.16 + 1) % 1;
+      const sProj = (dx * sDx + dy * sDy) / sSpan; // dx, dy are relative to center
+      const wavePhase = (sProj * 0.5 + 0.5 + (Math.random() - 0.5) * 0.16 + 1) % 1;
 
       // Spatial switchAt for colour transitions: a clean sweep along the
       // configured WAVE_ANGLE so the new colour fills the circle as a wave
       // front. A small jitter keeps the front from looking perfectly mechanical.
-      const wProj = (cx * wDx + cy * wDy) / wNorm;
+      const wProj = (dx * wDx + dy * wDy) / wSpan; // -1..1 across the circle
       const waveDelay = Math.min(
-        Math.max(wProj + (Math.random() - 0.5) * CONFIG.WAVE_JITTER, 0),
+        Math.max(wProj * 0.5 + 0.5 + (Math.random() - 0.5) * CONFIG.WAVE_JITTER, 0),
         1
       );
 

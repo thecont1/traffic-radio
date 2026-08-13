@@ -36,10 +36,10 @@ export const CONFIG = {
   // --- Idle shimmer ------------------------------------------------------------
   // A slow brightness wave drifting across the green LEDs while idle.
   SHIMMER_ANGLE: -45, // sweep direction in degrees (0 = left→right, 90 = top→bottom, 45 = diagonal)
-  SHIMMER_DURATION: 1200, // one full sweep (ms)
+  SHIMMER_DURATION: 2200, // one full sweep (ms)
   SHIMMER_DIM: 0.65, // idle base brightness multiplier (wave lifts back up)
   SHIMMER_BOOST: 0.6, // extra brightness at the wave crest
-  SHIMMER_WIDTH: 0.4, // crest width as a fraction of the sweep
+  SHIMMER_WIDTH: 0.5, // crest width as a fraction of the sweep
 
   // --- Interaction -------------------------------------------------------------
   DOUBLE_TAP_WINDOW: 300, // ms between taps to count as a double-tap (red cancel)
