@@ -12,7 +12,12 @@ import { CONFIG } from './config';
 // are prevented.
 // -----------------------------------------------------------------------------
 async function getCoords() {
-  if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.geolocation) {
+  if (Platform.OS === 'web') {
+    // navigator.geolocation only works in secure contexts (HTTPS or localhost).
+    // On a plain-HTTP network URL (e.g. http://192.168.x.x:8081) it is undefined.
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      throw new Error('Geolocation requires HTTPS or localhost');
+    }
     const pos = await new Promise((resolve, reject) =>
       navigator.geolocation.getCurrentPosition(resolve, reject, {
         enableHighAccuracy: true,
