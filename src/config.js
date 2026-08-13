@@ -33,7 +33,7 @@ export const CONFIG = {
   // Each LED flips instantly (digital) at a spatially-driven point in the 0..1
   // window, so the new colour fills the circle as a wave front.
   WAVE_ANGLE: 45, // sweep direction in degrees (0 = left→right, 90 = top→bottom, 45 = diagonal)
-  WAVE_JITTER: 0.5, // per-LED timing jitter so the front isn't perfectly mechanical
+  WAVE_JITTER: 0.06, // per-LED timing jitter so the front isn't perfectly mechanical
 
   // --- Honeycomb / LED rendering ---------------------------------------------
   LED_DENSITY: IS_NATIVE ? NATIVE_LED_DENSITY : WEB_LED_DENSITY, // approx hexagons across the diameter
@@ -47,8 +47,8 @@ export const CONFIG = {
   SHIMMER_ANGLE: -45, // sweep direction in degrees (0 = left→right, 90 = top→bottom, 45 = diagonal)
   SHIMMER_DURATION: 2200, // one full sweep (ms)
   SHIMMER_DIM: 0.65, // idle base brightness multiplier (wave lifts back up)
-  SHIMMER_BOOST: 0.6, // extra brightness at the wave crest
-  SHIMMER_WIDTH: 0.5, // crest width as a fraction of the sweep
+  SHIMMER_BOOST: 0.99, // extra brightness at the wave crest
+  SHIMMER_WIDTH: 0.99, // crest width as a fraction of the sweep
 
   // --- Interaction -------------------------------------------------------------
   DOUBLE_TAP_WINDOW: 300, // ms between taps to count as a double-tap (red cancel)

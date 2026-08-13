@@ -58,10 +58,11 @@ export function useTrafficSequence(waveDelays) {
   );
 
   // Run the timing curve whenever a new transition is queued.
+  // progress is reset to 0 in runTransition BEFORE setTrans, so there is no
+  // intermediate render where progress=1 shows the new target colour (flash).
   useEffect(() => {
     if (trans.seq === 0) return; // initial unpowered state, nothing to animate
     playTickBurst();
-    progress.setValue(0);
     const anim = Animated.timing(progress, {
       toValue: 1,
       duration: CONFIG.TRANSITION_DURATION,
@@ -86,9 +87,13 @@ export function useTrafficSequence(waveDelays) {
         currentRef.current = target;
         onDone();
       };
+      // Reset progress BEFORE setTrans so the re-render sees progress=0 and
+      // all LEDs show the 'from' colour. Otherwise progress is still 1 from
+      // the previous animation, causing a flash to the new 'to' colour.
+      progress.setValue(0);
       setTrans((t) => ({ from: currentRef.current, to: target, delays: makeDelays(), seq: t.seq + 1 }));
     },
-    [makeDelays]
+    [makeDelays, progress]
   );
 
   // Boot flicker: unpowered -> green, hexes popping on one at a time (~0.5s).
