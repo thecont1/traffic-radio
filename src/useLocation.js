@@ -3,12 +3,11 @@ import { Platform } from 'react-native';
 import * as Location from 'expo-location';
 import { CONFIG } from './config';
 
-const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
-
 // -----------------------------------------------------------------------------
 // Approximate device location -> neighbourhood-level place name, e.g.
 // "Vijaynagar, Bangalore". GPS via navigator.geolocation on web / expo-location
-// on native; reverse geocoding is proxied through the backend (/api/location).
+// on native; reverse geocoding uses expo-location's native reverseGeocodeAsync
+// on native and the OpenStreetMap Nominatim API on web (no backend required).
 // Refreshes every CONFIG.LOCATION_REFRESH_MS (5 minutes); overlapping requests
 // are prevented.
 // -----------------------------------------------------------------------------
@@ -29,6 +28,30 @@ async function getCoords() {
   return pos.coords;
 }
 
+// Build a neighbourhood-level place name from a native reverse-geocode result.
+function formatAddress(addr) {
+  const hood = addr.district || addr.subregion || addr.name || addr.street;
+  const city = addr.city || addr.region || addr.country;
+  if (hood && city) return `${hood}, ${city}`;
+  if (city) return city;
+  return addr.formattedAddress || null;
+}
+
+// Web fallback: reverse geocode via OpenStreetMap Nominatim (keyless, public).
+async function reverseGeocodeWeb(lat, lon) {
+  const url = `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=jsonv2&zoom=16&addressdetails=1&accept-language=en`;
+  const resp = await fetch(url, { headers: { 'User-Agent': 'traffic-radio-app/1.0' } });
+  if (!resp.ok) throw new Error(`nominatim ${resp.status}`);
+  const data = await resp.json();
+  const a = data.address || {};
+  const hood =
+    a.neighbourhood || a.suburb || a.quarter || a.residential || a.city_district || a.borough;
+  const city = a.city || a.town || a.municipality || a.village || a.county;
+  if (hood && city) return `${hood}, ${city}`;
+  if (city) return a.country ? `${city}, ${a.country}` : city;
+  return data.display_name || null;
+}
+
 export function useLocation() {
   const [place, setPlace] = useState(null);
   const [status, setStatus] = useState('locating'); // locating | ok | unavailable
@@ -39,15 +62,15 @@ export function useLocation() {
     running.current = true;
     try {
       const { latitude, longitude } = await getCoords();
-      const resp = await fetch(`${API_URL}/api/location`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ latitude, longitude }),
-      });
-      if (!resp.ok) throw new Error(`api ${resp.status}`);
-      const data = await resp.json();
-      if (data.place_name) {
-        setPlace(data.place_name);
+      let placeName = null;
+      if (Platform.OS === 'web') {
+        placeName = await reverseGeocodeWeb(latitude, longitude);
+      } else {
+        const results = await Location.reverseGeocodeAsync({ latitude, longitude });
+        if (results && results.length > 0) placeName = formatAddress(results[0]);
+      }
+      if (placeName) {
+        setPlace(placeName);
         setStatus('ok');
       } else {
         setStatus('unavailable');
