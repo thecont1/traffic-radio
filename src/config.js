@@ -11,33 +11,35 @@ export const SPEED_PRESETS = {
   NORMAL: 500,
   RAPID: 200,
 };
-export const ACTIVE_SPEED_PRESET = 'RAPID';
+export const ACTIVE_SPEED_PRESET = 'NORMAL';
 
 export const CONFIG = {
   // --- State machine durations (milliseconds) --------------------------------
   TRANSITION_DURATION: SPEED_PRESETS[ACTIVE_SPEED_PRESET], // digital flip window
   PREPARATION_DURATION: 2000, // first yellow hold (2s)
-  ACTIVE_DURATION: 10000, // red hold (10s)
+  ACTIVE_DURATION: 3000, // red hold (10s)
   COMPLETION_DURATION: 1000, // second yellow hold (1s)
 
   // --- LED wave transition ----------------------------------------------------
   // Each LED flips instantly (digital) at a spatially-driven point in the 0..1
-  // window, so the new colour fills the circle as a left -> right wave front.
-  WAVE_JITTER: 0.04, // per-LED timing jitter so the front isn't perfectly mechanical
+  // window, so the new colour fills the circle as a wave front.
+  WAVE_ANGLE: 45, // sweep direction in degrees (0 = left→right, 90 = top→bottom, 45 = diagonal)
+  WAVE_JITTER: 0.5, // per-LED timing jitter so the front isn't perfectly mechanical
 
   // --- Honeycomb / LED rendering ---------------------------------------------
-  LED_DENSITY: 15, // approx number of hexagons across the diameter
-  LED_GAP: 0.16, // gap between neighbours as a fraction of the hex radius
-  MIN_OPACITY: 0.85, // per-LED brightness variation (lower bound)
+  LED_DENSITY: 40, // approx number of hexagons across the diameter
+  LED_GAP: 0.05, // gap between neighbours as a fraction of the hex radius
+  MIN_OPACITY: 1.0, // per-LED brightness variation (lower bound)
   MAX_OPACITY: 1.0, // per-LED brightness variation (upper bound)
-  GLOW_OPACITY: 0.35, // ambient halo strength behind the button
+  GLOW_OPACITY: 0.95, // ambient halo strength behind the button
 
   // --- Idle shimmer ------------------------------------------------------------
   // A slow brightness wave drifting across the green LEDs while idle.
-  SHIMMER_DURATION: 5200, // one full sweep (ms)
-  SHIMMER_DIM: 0.85, // idle base brightness multiplier (wave lifts back up)
-  SHIMMER_BOOST: 0.3, // extra brightness at the wave crest
-  SHIMMER_WIDTH: 0.2, // crest width as a fraction of the sweep
+  SHIMMER_ANGLE: -45, // sweep direction in degrees (0 = left→right, 90 = top→bottom, 45 = diagonal)
+  SHIMMER_DURATION: 1200, // one full sweep (ms)
+  SHIMMER_DIM: 0.65, // idle base brightness multiplier (wave lifts back up)
+  SHIMMER_BOOST: 0.6, // extra brightness at the wave crest
+  SHIMMER_WIDTH: 0.4, // crest width as a fraction of the sweep
 
   // --- Interaction -------------------------------------------------------------
   DOUBLE_TAP_WINDOW: 300, // ms between taps to count as a double-tap (red cancel)
@@ -60,7 +62,7 @@ export const CONFIG = {
   // A faint relay-crackle of ticks scattered across each colour transition.
   // Web Audio (web/preview only; native relies on haptics).
   SOUND_TICKS: true,
-  TICK_COUNT: 20,
+  TICK_COUNT: 75,
   TICK_VOLUME: 0.04,
 
   // --- Boot flicker ----------------------------------------------------------------
@@ -76,6 +78,6 @@ export const CONFIG = {
   // --- Surfaces --------------------------------------------------------------
   BACKGROUND: '#070a0f', // page background (dark)
   GAP_COLOR: '#000000', // pure black between the LEDs
-  BEZEL: '#333333', // constant neutral border color
-  BEZEL_WIDTH: 1.5, // thin border
+  BEZEL: '#6f6', // constant neutral border color
+  BEZEL_WIDTH: 5.5, // thin border
 };
