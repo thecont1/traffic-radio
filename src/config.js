@@ -11,7 +11,7 @@ export const SPEED_PRESETS = {
   NORMAL: 500,
   RAPID: 200,
 };
-export const ACTIVE_SPEED_PRESET = 'NORMAL';
+export const ACTIVE_SPEED_PRESET = 'RAPID';
 
 export const CONFIG = {
   // --- State machine durations (milliseconds) --------------------------------
