@@ -5,11 +5,10 @@ The project is fully configured for EAS Build (`eas.json`, app identifiers in
 
 ## One-time setup (on your own machine)
 
-1. Download the code ("Save to GitHub" or code download), then:
+1. Install dependencies and the EAS CLI:
    ```bash
-   cd traffic-radio
    yarn install
-   npm install -g eas-cli
+   yarn global add eas-cli
    ```
 2. Create a free account at https://expo.dev/signup, then:
    ```bash
@@ -20,12 +19,14 @@ The project is fully configured for EAS Build (`eas.json`, app identifiers in
 ## Android — installable APK
 
 ```bash
-eas build --profile preview --platform android
+eas build --profile preview --platform android --non-interactive
 ```
 
 When it finishes, Expo gives you a download link/QR. Open it on your phone and
 install the APK directly (allow "install from unknown sources" if prompted).
 Haptics work on the real device.
+
+Both `preview` and `production` profiles build an APK (see `eas.json`).
 
 ## iOS
 
@@ -38,7 +39,7 @@ eas build --profile preview --platform ios
 For quick testing without an Apple account, use **Expo Go** instead:
 
 ```bash
-npx expo start
+bunx expo start
 ```
 
 Scan the QR code with the Expo Go app (App Store / Play Store).
