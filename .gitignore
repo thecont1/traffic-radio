@@ -31,6 +31,7 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
 .env*.local
 
 # typescript
@@ -47,4 +48,9 @@ yarn-error.*
 # IDE / tooling
 .idea/
 .qodo/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
 
