@@ -38,7 +38,7 @@ export const CONFIG = {
   // --- Honeycomb / LED rendering ---------------------------------------------
   LED_DENSITY: IS_NATIVE ? NATIVE_LED_DENSITY : WEB_LED_DENSITY, // approx hexagons across the diameter
   LED_GAP: 0.05, // gap between neighbours as a fraction of the hex radius
-  MIN_OPACITY: 1.0, // per-LED brightness variation (lower bound)
+  MIN_OPACITY: 0.1, // per-LED brightness variation (lower bound)
   MAX_OPACITY: 1.0, // per-LED brightness variation (upper bound)
   GLOW_OPACITY: 0.95, // ambient halo strength behind the button
 
@@ -79,7 +79,7 @@ export const CONFIG = {
 
   // --- Realistic traffic-light colors (rgb for reliable interpolation) -------
   COLORS: {
-    green: 'rgb(39,214,79)',
+    green: 'rgb(0,162,80)',
     yellow: 'rgb(255,176,31)', // amber
     red: 'rgb(255,47,47)',
   },

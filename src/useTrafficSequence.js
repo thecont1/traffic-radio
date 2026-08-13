@@ -87,11 +87,18 @@ export function useTrafficSequence(waveDelays) {
         currentRef.current = target;
         onDone();
       };
-      // Reset progress BEFORE setTrans so the re-render sees progress=0 and
-      // all LEDs show the 'from' colour. Otherwise progress is still 1 from
-      // the previous animation, causing a flash to the new 'to' colour.
+      // Reset progress to 0 and wait one frame before changing from/to.
+      // On React Native, Animated.Value.setValue() updates the JS-side value
+      // synchronously, but native animated nodes (SVG fill/opacity) don't
+      // flush until the next frame boundary. If we change from/to in the same
+      // tick, the re-render reaches native SVG with progress still at 1 from
+      // the previous animation → flash to new colour → flush to 0 → flash back.
+      // requestAnimationFrame ensures progress=0 is committed to native before
+      // the from/to swap reaches the LEDs.
       progress.setValue(0);
-      setTrans((t) => ({ from: currentRef.current, to: target, delays: makeDelays(), seq: t.seq + 1 }));
+      requestAnimationFrame(() => {
+        setTrans((t) => ({ from: currentRef.current, to: target, delays: makeDelays(), seq: t.seq + 1 }));
+      });
     },
     [makeDelays, progress]
   );
