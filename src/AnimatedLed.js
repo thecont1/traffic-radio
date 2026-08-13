@@ -24,7 +24,8 @@ const AnimatedPolygon = Animated.createAnimatedComponent(
 // digitally at the same `switchAt` moment as the colour.
 // -----------------------------------------------------------------------------
 function buildShimmerOpacity(shimmer, base, phase) {
-  const N = 12;
+  // Fewer interpolation points — 5 is enough for a smooth bump, 13 was overkill.
+  const N = 5;
   const inputRange = [];
   const outputRange = [];
   for (let i = 0; i <= N; i++) {
@@ -50,8 +51,10 @@ function AnimatedLed({ points, opacity, progress, from, to, switchAt, shimmer, w
   const toO = opacity * cueTo;
   const fillOpacity = useMemo(() => {
     const shimmerOp = buildShimmerOpacity(shimmer, opacity, wavePhase);
+    // Fast path: no colour-blind cue (all cues are 1) — shimmer alone drives opacity.
+    // This avoids an expensive Animated.multiply node per LED.
+    if (cueFrom === 1 && cueTo === 1) return shimmerOp;
     if (fromO === toO) {
-      // Constant cue — shimmer alone is correct when cue is 1
       return cueFrom === 1 ? shimmerOp : Animated.multiply(shimmerOp, cueFrom);
     }
     // Cue flips at switchAt — interpolate it on progress, then modulate shimmer

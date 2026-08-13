@@ -3,6 +3,8 @@
 // button, animation and state-machine logic never need to be touched to tweak
 // the look or feel of the traffic light.
 // -----------------------------------------------------------------------------
+import { Platform } from 'react-native';
+
 // --- Speed presets -----------------------------------------------------------
 // How long a full colour flip (all LEDs) takes. Switch by changing
 // ACTIVE_SPEED_PRESET to 'CALM', 'NORMAL' or 'RAPID'.
@@ -12,6 +14,13 @@ export const SPEED_PRESETS = {
   RAPID: 200,
 };
 export const ACTIVE_SPEED_PRESET = 'NORMAL';
+
+// SVG Animated nodes are expensive on React Native (JS-thread bridge per node)
+// but cheap on web (native browser SVG). Use fewer LEDs on native to keep
+// animation smooth; allow more on web for visual density.
+const IS_NATIVE = Platform.OS !== 'web';
+const NATIVE_LED_DENSITY = 12; // ~113 hexes — smooth on mobile
+const WEB_LED_DENSITY = 20; // ~388 hexes — crisp on browser
 
 export const CONFIG = {
   // --- State machine durations (milliseconds) --------------------------------
@@ -27,7 +36,7 @@ export const CONFIG = {
   WAVE_JITTER: 0.5, // per-LED timing jitter so the front isn't perfectly mechanical
 
   // --- Honeycomb / LED rendering ---------------------------------------------
-  LED_DENSITY: 40, // approx number of hexagons across the diameter
+  LED_DENSITY: IS_NATIVE ? NATIVE_LED_DENSITY : WEB_LED_DENSITY, // approx hexagons across the diameter
   LED_GAP: 0.05, // gap between neighbours as a fraction of the hex radius
   MIN_OPACITY: 1.0, // per-LED brightness variation (lower bound)
   MAX_OPACITY: 1.0, // per-LED brightness variation (upper bound)
