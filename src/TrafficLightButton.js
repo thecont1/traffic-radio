@@ -38,10 +38,10 @@ export default function TrafficLightButton({ size }) {
   const interactive = phase === 'IDLE_GREEN';
   const cancellable = phase === 'RED_ACTIVE';
 
-  // Idle shimmer: loop 0 -> 1 while idle, stop (and reset) during sequences.
+  // Shimmer: a continuous brightness wave that runs across all phases
+  // (green, yellow, red), not just idle.
   const shimmer = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    if (!interactive) return;
     shimmer.setValue(0);
     const loop = Animated.loop(
       Animated.timing(shimmer, {
@@ -53,8 +53,7 @@ export default function TrafficLightButton({ size }) {
     );
     loop.start();
     return () => loop.stop();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [interactive]);
+  }, [shimmer]);
 
   const buzz = () => {
     if (Platform.OS !== 'web') {
@@ -142,7 +141,7 @@ export default function TrafficLightButton({ size }) {
               from={from}
               to={to}
               switchAt={delays[h.id] ?? 0}
-              shimmer={interactive ? shimmer : null}
+              shimmer={shimmer}
               wavePhase={h.wavePhase}
               cueFrom={cueFactor(h, from)}
               cueTo={cueFactor(h, to)}

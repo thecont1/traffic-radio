@@ -49,15 +49,20 @@ function AnimatedLed({ points, opacity, progress, from, to, switchAt, shimmer, w
   const fromO = opacity * cueFrom;
   const toO = opacity * cueTo;
   const fillOpacity = useMemo(() => {
-    if (shimmer) return buildShimmerOpacity(shimmer, opacity, wavePhase);
-    if (fromO === toO) return toO;
-    return progress.interpolate({
+    const shimmerOp = buildShimmerOpacity(shimmer, opacity, wavePhase);
+    if (fromO === toO) {
+      // Constant cue — shimmer alone is correct when cue is 1
+      return cueFrom === 1 ? shimmerOp : Animated.multiply(shimmerOp, cueFrom);
+    }
+    // Cue flips at switchAt — interpolate it on progress, then modulate shimmer
+    const cueVal = progress.interpolate({
       inputRange: [s, s + 0.0001],
-      outputRange: [fromO, toO],
+      outputRange: [cueFrom, cueTo],
       extrapolate: 'clamp',
     });
+    return Animated.multiply(shimmerOp, cueVal);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shimmer, opacity, wavePhase, fromO, toO, s]);
+  }, [shimmer, opacity, wavePhase, fromO, toO, cueFrom, cueTo, s]);
 
   return <AnimatedPolygon points={points} fill={fill} fillOpacity={fillOpacity} />;
 }

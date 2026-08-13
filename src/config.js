@@ -23,7 +23,7 @@ export const CONFIG = {
   // --- LED wave transition ----------------------------------------------------
   // Each LED flips instantly (digital) at a spatially-driven point in the 0..1
   // window, so the new colour fills the circle as a wave front.
-  WAVE_ANGLE: 45, // sweep direction in degrees (0 = left→right, 90 = top→bottom, 45 = diagonal)
+  WAVE_ANGLE: -45, // sweep direction in degrees (0 = left→right, 90 = top→bottom, 45 = diagonal)
   WAVE_JITTER: 0.5, // per-LED timing jitter so the front isn't perfectly mechanical
 
   // --- Honeycomb / LED rendering ---------------------------------------------
